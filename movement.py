@@ -139,6 +139,9 @@ class Wheel:
     def on_ground(self):
         if self.pos.y == CANVAS_DIMS[1] - self.radius:
             return True
+        for platform in platforms:
+            if platform.intersects(self.pos,self.radius):
+                return True
         else:
             return False
 
@@ -159,11 +162,11 @@ class Wheel:
         elif self.pos.y > CANVAS_DIMS[1] - self.radius:
             self.pos.y = CANVAS_DIMS[1] - self.radius
         
-        if platform.intersects(self.pos, self.radius):
-            # Collision detected, adjust position
-            closest_point = platform.closest_point_on_segment(self.pos)
-            normal = (self.pos - closest_point).get_normalized()
-            self.pos = closest_point + normal.multiply(self.radius)
+        for platform in platforms:
+            if platform.intersects(self.pos, self.radius):
+                closest_point = platform.closest_point_on_segment(self.pos)
+                normal = (self.pos - closest_point).get_normalized()
+                self.pos = closest_point + normal.multiply(self.radius)
 
 class Keyboard:
     def __init__(self):
@@ -205,7 +208,7 @@ class Interaction:
 
         if self.wheel.on_ground():
             if self.keyboard.space:
-                self.wheel.vel.add(Vector(0, -40))
+                self.wheel.vel.add(Vector(0, -40 ))
 
 class Platform:
     def __init__(self, start_pos, end_pos):
@@ -217,20 +220,16 @@ class Platform:
         canvas.draw_line(self.start_pos.get_p(), self.end_pos.get_p(), 5, self.line_colour)
 
     def intersects(self, point, radius):
-        # Collision detection between a point (center of the wheel) and the line segment
         line_vec = self.end_pos - self.start_pos
         point_to_start = point - self.start_pos
 
         line_length_squared = line_vec.length_squared()
         dot_product = point_to_start.dot(line_vec)
 
-        # Parametric value of the projection of the point onto the line segment
         t = max(0, min(dot_product / line_length_squared, 1))
 
-        # Closest point on the line segment to the center of the wheel
         closest_point = self.start_pos + line_vec.multiply(t)
 
-        # Calculate distance between the closest point and the center of the wheel
         distance_squared = (point - closest_point).length_squared()
 
         return distance_squared <= radius ** 2
@@ -242,10 +241,8 @@ class Platform:
         line_length_squared = line_vec.length_squared()
         dot_product = point_to_start.dot(line_vec)
 
-        # Parametric value of the projection of the point onto the line segment
         t = max(0, min(dot_product / line_length_squared, 1))
 
-        # Closest point on the line segment to the given point
         closest_point = self.start_pos + line_vec.multiply(t)
 
         return closest_point
@@ -255,12 +252,20 @@ def draw(canvas):
     inter.update()
     wheel.update()
     wheel.draw(canvas)
-    platform.draw(canvas)
+
+    for platform in platforms:
+        platform.draw(canvas)
 
 kbd = Keyboard()
 wheel = Wheel(Vector(CANVAS_DIMS[0]/2, CANVAS_DIMS[1]-40),20)
 inter = Interaction(wheel,kbd)
+
 platform = Platform(Vector(100, CANVAS_DIMS[1]-100), Vector(300, CANVAS_DIMS[1]-100))
+platforms = [platform]
+initial_height = CANVAS_DIMS[1]-150
+for i in range(0,3):
+    initial_height -= 100
+    platforms.append(Platform(Vector(100, initial_height), Vector(300, initial_height)))
 
 frame = simplegui.create_frame("movement", CANVAS_DIMS[0], CANVAS_DIMS[1])
 frame.set_canvas_background('#87CEEB')
