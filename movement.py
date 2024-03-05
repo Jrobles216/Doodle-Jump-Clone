@@ -137,11 +137,13 @@ class Wheel:
         self.line_colour = 'black'
 
     def on_ground(self):
-        if self.pos.y == CANVAS_DIMS[1] - self.radius:
-            return True
         for platform in platforms:
             if platform.intersects(self.pos,self.radius):
                 return True
+        # REMOVE THIS IF STATEMENT AFTER ADDING PLATFORM GENERATION    
+        if self.pos.y == CANVAS_DIMS[1] - self.radius:
+            return True
+        # KEEP THIS ELSE STATEMENT AFTER ADDING PLATFORM GENERATION
         else:
             return False
 
@@ -152,16 +154,20 @@ class Wheel:
         self.pos.add(self.vel)
         self.vel.multiply(0.8)
 
+        # X AXIS PLAYER WRAP AROUND 
         if self.pos.x > CANVAS_DIMS[0] + self.radius:
             self.pos.x = -self.radius
         if self.pos.x < -self.radius:
             self.pos.x = CANVAS_DIMS[0] + self.radius
 
-        if self.pos.y < CANVAS_DIMS[1] - self.radius:
+        # Y AXIS GRAVITY ON PLAYER
+        if self.pos.y < CANVAS_DIMS[1] - self.radius or self.vel.y <= 0:
             self.vel.subtract(Vector(0, -1))
+        # POSSIBLY REMOVE THIS ELIF
         elif self.pos.y > CANVAS_DIMS[1] - self.radius:
             self.pos.y = CANVAS_DIMS[1] - self.radius
         
+        # CALCULATES IF THE PLAYER INTERSECTS ANY OF THE PLATFORMS
         for platform in platforms:
             if platform.intersects(self.pos, self.radius):
                 closest_point = platform.closest_point_on_segment(self.pos)
@@ -198,27 +204,36 @@ class Interaction:
     def __init__(self, wheel, keyboard):
         self.wheel = wheel
         self.keyboard = keyboard
+        self.count = 0
+        self.delay = 15
 
     def update(self):
+        # MOVE RIGHT
         if self.keyboard.right:
             self.wheel.vel.add(Vector(1, 0))
-
+        
+        # MOVE LEFT
         if self.keyboard.left:
             self.wheel.vel.add(Vector(-1, 0))
 
-        if self.wheel.on_ground():
-            if self.keyboard.space:
-                self.wheel.vel.add(Vector(0, -40 ))
+        if self.wheel.on_ground() and self.keyboard.space:
+            # AUTO JUMP TO BE ADDED AFTER COMBINING - Remove the space bar keybind when doing this
+            # self.count += 1
+            # if self.count % self.delay == 0:
+                if self.wheel.vel.y >= 0:
+                    self.wheel.vel.add(Vector(0, -40 ))
+            
 
 class Platform:
     def __init__(self, start_pos, end_pos):
         self.start_pos = start_pos
         self.end_pos = end_pos
-        self.line_colour = 'brown'
+        self.line_colour = 'black'
 
     def draw(self, canvas):
         canvas.draw_line(self.start_pos.get_p(), self.end_pos.get_p(), 5, self.line_colour)
 
+    # CALCULATES IF THE PLAYER WILL INTERSECT WITH THE PLATFORM POSITION
     def intersects(self, point, radius):
         line_vec = self.end_pos - self.start_pos
         point_to_start = point - self.start_pos
@@ -234,6 +249,7 @@ class Platform:
 
         return distance_squared <= radius ** 2
 
+    # CALCUATES THE NEAREST POINT ON THE PLATFORM FOR THE BALL TO LAND ON
     def closest_point_on_segment(self, point):
         line_vec = self.end_pos - self.start_pos
         point_to_start = point - self.start_pos
@@ -260,14 +276,15 @@ kbd = Keyboard()
 wheel = Wheel(Vector(CANVAS_DIMS[0]/2, CANVAS_DIMS[1]-40),20)
 inter = Interaction(wheel,kbd)
 
-platform = Platform(Vector(100, CANVAS_DIMS[1]-100), Vector(300, CANVAS_DIMS[1]-100))
-platforms = [platform]
-initial_height = CANVAS_DIMS[1]-150
+# BASIC PLATFORM GENERATION TO TEST PLATFORM JUMPING
+p = Platform(Vector(100, CANVAS_DIMS[1]-50), Vector(300, CANVAS_DIMS[1]-50))
+platforms = [p]
+initial_height = CANVAS_DIMS[1]-50
 for i in range(0,3):
     initial_height -= 100
     platforms.append(Platform(Vector(100, initial_height), Vector(300, initial_height)))
 
-frame = simplegui.create_frame("movement", CANVAS_DIMS[0], CANVAS_DIMS[1])
+frame = simplegui.create_frame("Doodle Jump", CANVAS_DIMS[0], CANVAS_DIMS[1])
 frame.set_canvas_background('#87CEEB')
 
 frame.set_draw_handler(draw)
