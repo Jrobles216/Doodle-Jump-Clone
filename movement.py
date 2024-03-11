@@ -129,12 +129,18 @@ class Vector:
         return unit.multiply(self.dot(unit))
     
 class Wheel:
-    def __init__(self, pos, radius):
+    def __init__(self, pos, radius,idle,width,height,jump,runRight,runLeft):
         self.pos = pos
         self.vel = Vector()
         self.radius = radius
-        self.colour = 'green'
-        self.line_colour = 'black'
+        self.idle = idle
+        self.width = width
+        self.height = height
+        self.frame_rate = 0
+        self.index = 0
+        self.jump = jump
+        self.runRight = runRight
+        self.runLeft = runLeft
 
     def on_ground(self):
         for platform in platforms:
@@ -148,7 +154,29 @@ class Wheel:
             return False
 
     def draw(self, canvas):
-        canvas.draw_circle(self.pos.get_p(), self.radius, 1, self.line_colour, self.colour)
+        self.frame_rate += 1
+
+        if self.frame_rate % 5 == 0:
+            self.index += 1
+
+        if self.index == 15:
+                self.index = 0
+
+        image_center = (self.width / 2, self.height / 2)
+        image_size = (self.width, self.height)
+        image_position = self.pos.get_p()
+        image_radius = (self.radius * 2.5, self.radius * 2.5)
+
+        if self.on_ground() == False:
+            canvas.draw_image(self.jump[self.index], image_center, image_size, image_position, image_radius)
+        elif self.vel.x != 0:
+            if self.vel.x > 0:
+                canvas.draw_image(self.runRight[self.index], image_center, image_size, image_position, image_radius)
+            if self.vel.x <0:
+                canvas.draw_image(self.runLeft[self.index], image_center, image_size, image_position, image_radius)
+        else:
+            canvas.draw_image(self.idle[self.index], image_center, image_size, image_position, image_radius)
+        
         
     def update(self):
         self.pos.add(self.vel)
@@ -209,12 +237,14 @@ class Interaction:
 
     def update(self):
         # MOVE RIGHT
-        if self.keyboard.right:
+        if self.keyboard.left and self.keyboard.right:
+            self.wheel.vel.x = 0
+        elif self.keyboard.right:
             self.wheel.vel.add(Vector(1, 0))
-        
-        # MOVE LEFT
-        if self.keyboard.left:
+        elif self.keyboard.left:
             self.wheel.vel.add(Vector(-1, 0))
+        else:
+            self.wheel.vel.x = 0
 
         if self.wheel.on_ground() and self.keyboard.space:
             # AUTO JUMP TO BE ADDED AFTER COMBINING - Remove the space bar keybind when doing this
@@ -272,8 +302,76 @@ def draw(canvas):
     for platform in platforms:
         platform.draw(canvas)
 
+idle = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(1).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(2).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(3).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(4).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(5).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(6).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(7).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(8).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(9).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(10).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(11).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(12).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(13).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(14).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(15).png")
+       ]
+
+jump = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(1).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(2).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(3).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(4).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(5).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(6).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(7).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(8).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(9).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(10).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(11).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(12).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(13).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(14).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(15).png")
+       ]
+
+runRight = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(1).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(2).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(3).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(4).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(5).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(6).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(7).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(8).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(9).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(10).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(11).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(12).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(13).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(14).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(15).png")
+       ]
+
+runLeft = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(1).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(2).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(3).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(4).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(5).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(6).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(7).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(8).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(9).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(10).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(11).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(12).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(13).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(14).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/RunLeft(15).png")
+       ]
+
 kbd = Keyboard()
-wheel = Wheel(Vector(CANVAS_DIMS[0]/2, CANVAS_DIMS[1]-40),20)
+wheel = Wheel(Vector(CANVAS_DIMS[0]/2, CANVAS_DIMS[1]-40), 20, idle, 614, 564,jump,runRight,runLeft)
 inter = Interaction(wheel,kbd)
 
 # BASIC PLATFORM GENERATION TO TEST PLATFORM JUMPING
