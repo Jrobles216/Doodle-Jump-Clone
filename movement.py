@@ -129,7 +129,7 @@ class Vector:
         return unit.multiply(self.dot(unit))
     
 class Wheel:
-    def __init__(self, pos, radius,idle,width,height,jump,runRight,runLeft):
+    def __init__(self, pos, radius,idle,width,height,jumpRight,jumpLeft,runRight,runLeft):
         self.pos = pos
         self.vel = Vector()
         self.radius = radius
@@ -138,7 +138,8 @@ class Wheel:
         self.height = height
         self.frame_rate = 0
         self.index = 0
-        self.jump = jump
+        self.jumpRight = jumpRight
+        self.jumpLeft = jumpLeft
         self.runRight = runRight
         self.runLeft = runLeft
 
@@ -168,11 +169,14 @@ class Wheel:
         image_radius = (self.radius * 2.5, self.radius * 2.5)
 
         if self.on_ground() == False:
-            canvas.draw_image(self.jump[self.index], image_center, image_size, image_position, image_radius)
+            if self.vel.x < 0:
+                canvas.draw_image(self.jumpLeft[self.index], image_center, image_size, image_position, image_radius)
+            else:
+                canvas.draw_image(self.jumpRight[self.index], image_center, image_size, image_position, image_radius)
         elif self.vel.x != 0:
             if self.vel.x > 0:
                 canvas.draw_image(self.runRight[self.index], image_center, image_size, image_position, image_radius)
-            if self.vel.x <0:
+            elif self.vel.x < 0:
                 canvas.draw_image(self.runLeft[self.index], image_center, image_size, image_position, image_radius)
         else:
             canvas.draw_image(self.idle[self.index], image_center, image_size, image_position, image_radius)
@@ -190,7 +194,7 @@ class Wheel:
 
         # Y AXIS GRAVITY ON PLAYER
         if self.pos.y < CANVAS_DIMS[1] - self.radius or self.vel.y <= 0:
-            self.vel.subtract(Vector(0, -1))
+            self.vel.subtract(Vector(0, -0.5))
         # POSSIBLY REMOVE THIS ELIF
         elif self.pos.y > CANVAS_DIMS[1] - self.radius:
             self.pos.y = CANVAS_DIMS[1] - self.radius
@@ -240,9 +244,9 @@ class Interaction:
         if self.keyboard.left and self.keyboard.right:
             self.wheel.vel.x = 0
         elif self.keyboard.right:
-            self.wheel.vel.add(Vector(1, 0))
+            self.wheel.vel.add(Vector(0.5, 0))
         elif self.keyboard.left:
-            self.wheel.vel.add(Vector(-1, 0))
+            self.wheel.vel.add(Vector(-0.5, 0))
         else:
             self.wheel.vel.x = 0
 
@@ -319,7 +323,7 @@ idle = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle
        simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Idle(15).png")
        ]
 
-jump = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(1).png"),
+jumpRight = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(1).png"),
        simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(2).png"),
        simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(3).png"),
        simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(4).png"),
@@ -334,6 +338,23 @@ jump = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump
        simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(13).png"),
        simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(14).png"),
        simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Jump(15).png")
+       ]
+
+jumpLeft = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(1).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(2).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(3).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(4).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(5).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(6).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(7).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(8).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(9).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(10).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(11).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(12).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(13).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(14).png"),
+       simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/JumpLeft(15).png")
        ]
 
 runRight = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/Run(1).png"),
@@ -371,7 +392,7 @@ runLeft = [simplegui.load_image("https://www.cs.rhul.ac.uk/home/zlac385/cs1822/R
        ]
 
 kbd = Keyboard()
-wheel = Wheel(Vector(CANVAS_DIMS[0]/2, CANVAS_DIMS[1]-40), 20, idle, 614, 564,jump,runRight,runLeft)
+wheel = Wheel(Vector(CANVAS_DIMS[0]/2, CANVAS_DIMS[1]-40), 20, idle, 614, 564,jumpRight,jumpLeft,runRight,runLeft)
 inter = Interaction(wheel,kbd)
 
 # BASIC PLATFORM GENERATION TO TEST PLATFORM JUMPING
