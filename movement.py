@@ -237,7 +237,7 @@ class Interaction:
         self.wheel = wheel
         self.keyboard = keyboard
         self.count = 0
-        self.delay = 15
+        self.jump = False
 
     def update(self):
         # MOVE RIGHT
@@ -250,12 +250,17 @@ class Interaction:
         else:
             self.wheel.vel.x = 0
 
-        if self.wheel.on_ground() and self.keyboard.space:
+        if self.wheel.on_ground():
             # AUTO JUMP TO BE ADDED AFTER COMBINING - Remove the space bar keybind when doing this
-            # self.count += 1
-            # if self.count % self.delay == 0:
-                if self.wheel.vel.y >= 0:
-                    self.wheel.vel.add(Vector(0, -40 ))
+            if self.count >= 50:
+                self.jump = True
+            else:
+                self.count += 1
+
+            if self.jump == True and self.keyboard.space:
+                self.wheel.vel.add(Vector(0, -40 ))
+                self.count = 0
+                self.jump = False
             
 
 class Platform:
